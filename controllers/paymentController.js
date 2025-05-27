@@ -24,7 +24,7 @@ const initiatePayment = async (req, res) => {
             {
                 amount: price,
                 currency: 'ETB',
-                email: email,
+                email: "example@ex.com",
                 first_name: firstName,
                 last_name: lastName,
                 phone_number: phone,
@@ -51,6 +51,8 @@ const initiatePayment = async (req, res) => {
             };
             res.status(200).json(data);
         }).catch((err) => {
+            console.log(err.response?.data || err.message);
+            
             res.status(400).json({ message: err.response?.data || err.message })
         });
             
