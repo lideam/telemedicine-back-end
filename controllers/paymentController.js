@@ -73,7 +73,7 @@ const paymentCallback = async (req, res) => {
         Notification.create({
             userId: invoice.userId,
             type: "transaction",
-            title: "Appointment Payment Status Updated",
+            title: "Appointment Payment Updated",
             message: "your appointment payment status has been updated",
         });
         Chat.create({

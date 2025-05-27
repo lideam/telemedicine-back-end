@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const healthRecordSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   medicalHistory: {
     type: String,
     enum: ["None", "Asthma", "Knee Surgery", "Diabetes", "Heart Disease", "Cancer", "Other"],
