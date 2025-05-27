@@ -43,14 +43,12 @@ let getAppointmentCallUrl = async (req, res) => {
         .then(async appointment => {
             if (!appointment) {
                 return res.status(404).json({ error: 'Appointment not found' });
-            }else if (!appointment.callUrl) {
+            }else {
                 var callUrl = await createVideoCallRoom();
                 
                 appointment.callUrl = callUrl;
                 appointment.save();
-                res.json({ callUrl: appointment.callUrl });    
-            }else{
-              res.json({ callUrl: appointment.callUrl });
+                res.json({ callUrl: callUrl });    
             }
         })
     }
