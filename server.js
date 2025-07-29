@@ -1,7 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const helmet  = require('helmet'); 
-const rateLimit  = require('express-rate-limit');
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const cors = require("cors");
 const http = require("http");
 
@@ -13,7 +13,10 @@ const initializeAdminUser = require("./utils/initAdmin");
 const { hourlyScheduler } = require("./services/schedulerService");
 const { initSocket } = require("./services/socketService");
 
-const {expireOldAppointments,expireNotPaidAppointments} = require("./tasks/AppointmentTasks");
+const {
+  expireOldAppointments,
+  expireNotPaidAppointments,
+} = require("./tasks/AppointmentTasks");
 
 const auth = require("./middlewares/authMiddleware");
 
@@ -28,10 +31,10 @@ const scheduleRoutes = require("./routes/scheduleRoutes");
 const userRoutes = require("./routes/userRoutes.js");
 const healthRecordRoutes = require("./routes/healthRecordRoutes");
 const statsRoutes = require("./routes/statisticsRoutes");
-const uploadRoutes = require('./routes/uploadRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
-const instituteRoutes = require('./routes/instituteRoutes');
-const videoCallRoutes = require('./routes/videoCallRoutes');
+const uploadRoutes = require("./routes/uploadRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const instituteRoutes = require("./routes/instituteRoutes");
+const videoCallRoutes = require("./routes/videoCallRoutes");
 
 dotenv.config();
 
@@ -39,9 +42,25 @@ const app = express();
 
 // app.set('trust proxy', 1);
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173", // Vite dev server
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
-app.use(helmet()); 
+app.use(helmet());
 
 // app.use(rateLimit({
 //   windowMs: 5 * 60 * 1000,
@@ -50,7 +69,6 @@ app.use(helmet());
 //   legacyHeaders: false,
 //   message: 'Too many requests, please try again later',
 // }));
-
 
 app.get("/", (req, res) => {
   res.send("TeleMedicine API is running...");
@@ -67,28 +85,30 @@ app.use("/api/schedule", auth.isAuthenticated, scheduleRoutes);
 app.use("/api/user", auth.isAuthenticated, userRoutes);
 app.use("/api/healthRecord", auth.isAuthenticated, healthRecordRoutes);
 app.use("/api/stats", auth.isAuthenticated, statsRoutes);
-app.use('/api/upload', auth.isAuthenticated, uploadRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/institute', auth.isAuthenticated, instituteRoutes);
-app.use('/api/videoCall', auth.isAuthenticated, videoCallRoutes);
+app.use("/api/upload", auth.isAuthenticated, uploadRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/institute", auth.isAuthenticated, instituteRoutes);
+app.use("/api/videoCall", auth.isAuthenticated, videoCallRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Internal Server Error' });
+  res.status(500).json({ message: "Internal Server Error" });
 });
 
-connectDB().then(async () => {
-  await initializeAdminUser();
+connectDB()
+  .then(async () => {
+    await initializeAdminUser();
 
-  hourlyScheduler("expireOldAppointments",expireOldAppointments);
-  hourlyScheduler("expireNotPaidAppointments",expireNotPaidAppointments);
+    hourlyScheduler("expireOldAppointments", expireOldAppointments);
+    hourlyScheduler("expireNotPaidAppointments", expireNotPaidAppointments);
 
-  // const server = http.createServer(app);
-  // initSocket(server);
+    // const server = http.createServer(app);
+    // initSocket(server);
 
-  app.listen(config.SERVER_PORT, () =>
-    console.log(`Server running on port ${config.SERVER_PORT}`)
-  );
-}).catch(err => {
-  console.error("Failed to start server:", err);
-});
+    app.listen(config.SERVER_PORT, () =>
+      console.log(`Server running on port ${config.SERVER_PORT}`)
+    );
+  })
+  .catch((err) => {
+    console.error("Failed to start server:", err);
+  });
